@@ -1,4 +1,3 @@
 # MrAbderrahmane.github.io
 myProjects
-
-Snake [snake]('/snake')
+- [snake](mrabderrahmane.github.io/snake)
