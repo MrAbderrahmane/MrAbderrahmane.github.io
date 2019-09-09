@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>locxtogpx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <input type="file" id="files" name="files[]" multiple />
+    <button onclick="ow()">convert</button>
+</body>
+<script>
+    let str='<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n<gpx version="1.1" creator="Abderrahmane">';
+    function handleFileSelect(evt) {
+        if(!str.endsWith('="Abderrahmane">')){
+            str='<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n<gpx version="1.1" creator="Abderrahmane">';
+        }
+      var files = evt.target.files; // FileList object
+      for (var i = 0, f; f = files[i]; i++) {
+        var reader = new FileReader();
+        reader.onload = (function(theFile) {
+              return function(e) {
+                  let obj = JSON.parse(e.target.result);
+                  str += '\n<wpt lat="'+obj.latitude+'" lon="'+obj.longitude+'">\n<name>'+obj.name+'</name>\n</wpt>';
+              };
+        })(f);
+        //reader.readAsDataURL(f);
+        reader.readAsText(f);
+      }
+    }
+    // Check for the various File API support.
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+    // Great success! All the File APIs are supported.
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    } else {
+    alert('The File APIs are not fully supported in this browser.');
+    }  
+    let ow = ()=>{
+        if(!str.endsWith('</gpx>')){
+            str += '\n</gpx>'
+        }
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=UTF-8,' + str);
+        element.setAttribute('download', 'exported.gpx');
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+</script>
+</script>
+</html>
