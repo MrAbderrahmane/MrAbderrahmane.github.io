@@ -1,15 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>locxtogpx</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MGRSconverter</title>
   </head>
   <body>
     <input type="file" id="files" name="files[]" multiple />
     <button onclick="ow()">convert</button>
+    <!-- <script src="https://raw.githubusercontent.com/proj4js/mgrs/v2.0.0/dist/mgrs.min.js"></script> -->
     <script>
+      fetch("https://raw.githubusercontent.com/proj4js/mgrs/v2.0.0/dist/mgrs.min.js").then(res=>res.text()).then(js=>{
+        // user should wait til this is loaded 
+        eval(js);
+      });
+    </script>
+    <script>
+      function convertMgrsToDD(mgrsPoint) {
+        // Convert the MGRS point to latitude and longitude in decimal degrees
+        if(!mgrs) return;
+        const latLng = mgrs.inverse(mgrsPoint);
+        const lat = latLng[1];
+        const lng = latLng[0];
+
+        return {
+          lat: lat,
+          lng: lng,
+        };
+      }
       let str =
         '<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n<gpx version="1.1" creator="Abderrahmane">';
       function handleFileSelect(evt) {
@@ -21,12 +40,27 @@
         for (var i = 0, f; (f = files[i]); i++) {
           var reader = new FileReader();
           reader.onload = function (e) {
-            let obj = JSON.parse(e.target.result);
-            str += '\n<wpt lat="' + obj.latitude + '" lon="' + obj.longitude + '">\n<name>' + obj.name + "</name>\n</wpt>";
+            const wPoints = parseCsv(e.target.result);
+            wPoints.forEach(element => {
+              str += '\n<wpt lat="' + element.lat + '" lon="' + element.lng + '">\n<name>' + element.name + "</name>\n</wpt>";
+              
+            });
           };
           //reader.readAsDataURL(f);
           reader.readAsText(f);
         }
+      }
+      function parseCsv(file){
+        const res = [];
+        file.split('\n').forEach(line=>{
+          const [name,point] = line.split(',');
+          try {
+            const wp = convertMgrsToDD(point);
+            wp.name = name;
+            res.push(wp);
+          } catch (e) {}
+        });
+        return res;
       }
       // Check for the various File API support.
       if (window.File && window.FileReader && window.FileList && window.Blob) {
